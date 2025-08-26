@@ -13,15 +13,19 @@ from sklearn.model_selection import train_test_split
 
 class CelebAIdentities(Dataset):
     def __init__(self, root, split='train', transform=None,
-                 top_k=None, min_images=0, seed=42):
+                 top_k=None, min_images=0, seed=42, download=False):
         self.root = Path(root)
         self.transform = transform
         self.split = split
         self.seed = seed
         
+        if download:
+            _ = datasets.CelebA(root=str(self.root.parent), split='train',
+                        target_type=[], download=True)
+
         anno_dir = self.root / "Anno"
         img_dir = self.root / "Img" / "img_align_celeba"
-        nested = img_dir / "img_align_celeba"  #
+        nested = img_dir / "img_align_celeba"  
         if nested.exists():
             img_dir = nested
         if not img_dir.exists():
@@ -168,7 +172,7 @@ def main():
                 "label2id": ds_train.label2id,
                 "img_size": cfg["img_size"]
             }, cfg["model_out"])
-            print(f"Guardado el modelo en {cfg['model_out']} (val acc {best_val:.3f})")
+            print(f"✓ Guardado mejor modelo en {cfg['model_out']} (val acc {best_val:.3f})")
 
     te_loss, te_acc = evaluate(model, dl_test, criterion, device, desc="Test")
     print(f"[Test] loss {te_loss:.4f} acc {te_acc:.3f}")
