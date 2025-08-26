@@ -1,11 +1,12 @@
-# scripts/verify.py
 import argparse
-from pathlib import Path
 import yaml
 import torch
 import pandas as pd
+
 from PIL import Image
 from torchvision import models, transforms
+from pathlib import Path
+
 
 def load_model_and_cfg(cfg_path: str):
     cfg = yaml.safe_load(open(cfg_path, "r"))
@@ -24,7 +25,6 @@ def load_model_and_cfg(cfg_path: str):
     return cfg, ckpt, model, tf
 
 def build_filename2label(cfg, ckpt):
-    """Devuelve dict filename -> label(0..C-1) sólo para identidades del subset."""
     data_root = Path(cfg["data_root"])
     anno = data_root / "Anno" / "identity_CelebA.txt"
     if not anno.exists():
@@ -59,7 +59,7 @@ def main():
 
     cfg, ckpt, model, tf = load_model_and_cfg(args.config)
     filename2label = build_filename2label(cfg, ckpt)
-    label2id = ckpt["label2id"]  # label -> identity_id original (para info)
+    label2id = ckpt["label2id"]  
 
     img_path = Path(args.image)
     if not img_path.exists():
@@ -68,7 +68,6 @@ def main():
     pred, conf, probs = predict(model, tf, img_path)
     pred_identity = label2id.get(pred, "?")
 
-    # Ground truth: 1) desde dataset por nombre de archivo; 2) desde --expected si lo dan.
     truth_label = None
     if img_path.name in filename2label:
         truth_label = filename2label[img_path.name]
@@ -84,7 +83,7 @@ def main():
         ok = (pred == truth_label)
         truth_identity = label2id.get(truth_label, "?")
         print(f"Ground truth ({source}) -> label={truth_label}  identity_id={truth_identity}")
-        print("Resultado:", "✅ CORRECTO" if ok else "❌ INCORRECTO")
+        print("Resultado:", "CORRECTO" if ok else "INCORRECTO")
         exit_code = 0 if ok else 1
     else:
         print("Ground truth no disponible (ni en dataset ni por --expected).")

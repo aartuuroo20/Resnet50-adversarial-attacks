@@ -1,13 +1,13 @@
 data_root: ./data/celeba
-download: false             # descarga automática con torchvision
-top_k_identities: 10       # nº de personas a reconocer en la demo
-min_images_per_id: 20      # filtra identidades con suficientes ejemplos
+download: false            
+top_k_identities: 10      
+min_images_per_id: 20      
 batch_size: 64
 num_workers: 4
-epochs: 5                  # súbelo si tienes GPU y tiempo
+epochs: 5                  
 lr: 0.0005
 weight_decay: 0.0001
 img_size: 224
 model_out: ./resnet50_celeba_subset.pth
 seed: 42
-device: cuda               # cuda / cpu
+device: cuda              

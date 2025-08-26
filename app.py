@@ -1,12 +1,13 @@
 import streamlit as st
 import torch
-from torchvision import transforms, models
-from PIL import Image
-from pathlib import Path
 import yaml
 import random
 import os
 import pandas as pd
+
+from torchvision import transforms, models
+from PIL import Image
+from pathlib import Path
 
 st.set_page_config(page_title="CelebA ResNet-50", page_icon="🖼️")
 
@@ -42,8 +43,8 @@ def sample_image(celeba_root: Path):
 st.title("Reconocimiento de personas con CelebA y ResNet‑50")
 
 cfg, ckpt, model, tf = load_state("config.yaml")
-label2id = ckpt["label2id"]  # label -> identity_id original
-id2label = ckpt["id2label"]  # identity_id original -> label
+label2id = ckpt["label2id"]  
+id2label = ckpt["id2label"]  
 label2name = {lab: str(identity) for lab, identity in label2id.items()}
 
 tab1, tab2 = st.tabs(["Imagen aleatoria del dataset", "Subir una imagen"])

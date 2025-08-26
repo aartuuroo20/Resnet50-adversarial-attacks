@@ -12,40 +12,25 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
 class CelebAIdentities(Dataset):
-    """
-    Dataset de identidades para CelebA usando los metadatos:
-    - identity_CelebA.txt: mapping filename -> identity_id (entero)
-    - list_eval_partition.txt: split original (0 train, 1 val, 2 test) (no lo usamos estrictamente)
-    Trabaja sobre el directorio 'img_align_celeba/img_align_celeba'.
-    Permite filtrar top-K identidades por frecuencia y mínimo de imágenes por identidad.
-    """
     def __init__(self, root, split='train', transform=None,
-                 top_k=None, min_images=0, seed=42, download=False):
+                 top_k=None, min_images=0, seed=42):
         self.root = Path(root)
         self.transform = transform
         self.split = split
         self.seed = seed
-        # Descarga con torchvision para asegurar estructura y anotaciones
         
-        if download:
-        # No pedimos 'attr' para que no exija list_attr_celeba.txt
-            _ = datasets.CelebA(root=str(self.root.parent), split='train',
-                        target_type=[], download=True)
-
         anno_dir = self.root / "Anno"
         img_dir = self.root / "Img" / "img_align_celeba"
-        nested = img_dir / "img_align_celeba"  # por si hay carpeta duplicada
+        nested = img_dir / "img_align_celeba"  #
         if nested.exists():
             img_dir = nested
         if not img_dir.exists():
             raise FileNotFoundError(f"No encuentro carpeta de imágenes en {img_dir}")
 
-        # Cargar tablas
         ids = pd.read_csv(anno_dir / "identity_CelebA.txt", sep=r"\s+", header=None, names=["filename", "identity"])
         part = pd.read_csv(anno_dir / "list_eval_partition.txt", sep=r"\s+", header=None, names=["filename", "split"])
         df = ids.merge(part, on="filename")
 
-        # Filtrar a solo archivos que existen realmente
         existing = {p.name for p in img_dir.glob("*.jpg")}
         missing_before = df.shape[0]
         df = df[df["filename"].isin(existing)].copy()
@@ -53,25 +38,21 @@ class CelebAIdentities(Dataset):
         if missing_after > 0:
             print(f"[Aviso] {missing_after} anotaciones apuntaban a imágenes inexistentes y se han descartado.")
 
-        # Mapear split humano
         split_map = {0: "train", 1: "valid", 2: "test"}
         df["split"] = df["split"].map(split_map)
 
-        # Filtrado por top_k y min_images (se calcula sobre train para simular selección práctica)
         if top_k is not None:
             train_counts = (df[df["split"] == "train"]["identity"]
                             .value_counts())
             keep_ids = train_counts[train_counts >= min_images].head(top_k).index.tolist()
             df = df[df["identity"].isin(keep_ids)]
 
-        # Reindexar labels (0..C-1)
         unique_ids = sorted(df["identity"].unique().tolist())
         self.id2label = {iden: i for i, iden in enumerate(unique_ids)}
         self.label2id = {v: k for k, v in self.id2label.items()}
 
-        # Estratificar a un split propio train/val/test (70/15/15) por si el original no cuadra tras filtrar
         df["label"] = df["identity"].map(self.id2label)
-        # Usamos partición estratificada a nivel de archivo tras el filtrado global
+
         train_df, temp_df = train_test_split(df, test_size=0.30, random_state=seed, stratify=df["label"])
         val_df, test_df = train_test_split(temp_df, test_size=0.50, random_state=seed, stratify=temp_df["label"])
 
@@ -168,7 +149,6 @@ def main():
     num_classes = len(ds_train.id2label)
 
     model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
-    # Fine‑tuning completo (puedes congelar si quieres)
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     model.to(device)
 
@@ -188,7 +168,7 @@ def main():
                 "label2id": ds_train.label2id,
                 "img_size": cfg["img_size"]
             }, cfg["model_out"])
-            print(f"✓ Guardado mejor modelo en {cfg['model_out']} (val acc {best_val:.3f})")
+            print(f"Guardado el modelo en {cfg['model_out']} (val acc {best_val:.3f})")
 
     te_loss, te_acc = evaluate(model, dl_test, criterion, device, desc="Test")
     print(f"[Test] loss {te_loss:.4f} acc {te_acc:.3f}")
