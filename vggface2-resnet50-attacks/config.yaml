@@ -1,0 +1,22 @@
+seed: 42
+device: cuda
+
+# --- Dataset ---
+dataset_name: vggface2hq
+data_root: data/vggface2hq       # carpeta base
+train_dir: data/vggface2hq/train # subcarpeta train
+test_dir:  data/vggface2hq/test  # subcarpeta test
+val_split: 0.15                   # % de train para validación
+top_k_identities: 8            # como antes (tu demo)
+min_images_per_id: 15
+
+# --- Modelo / Entreno ---
+img_size: 224
+batch_size: 64
+num_workers: 4
+epochs: 5
+lr: 1e-4
+weight_decay: 1e-4
+
+# --- Salida ---
+model_out: checkpoints/resnet50_vggface2hq_top10.pth
