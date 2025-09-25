@@ -1,6 +1,6 @@
 # Adversarial Attacks on ResNet-50 (CelebA and VGGFace2)
 
-This repository contains two projects that analyze the **vulnerability of ResNet-50 models** trained on the **CelebA** and **VGGFace2** datasets, against adversarial attacks. Various attack techniques, robustness tests, and analysis on security in computer vision models are implemented.
+This repository is a more **complete and extended version** of the repository Resnet50-adversarial-robustness. It contains two projects that analyze the **vulnerability of ResNet-50 models** trained on the **CelebA** and **VGGFace2** datasets, against adversarial attacks. Various attack techniques, robustness tests, and analysis on security in computer vision models are implemented.
 
 ## Repository Content
 
